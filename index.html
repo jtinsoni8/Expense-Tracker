@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Expense Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --accent-color: #2196F3;
+            --danger-color: #f44336;
+            --background: #f5f5f5;
+            --card-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            animation: fadeInDown 1s ease;
+        }
+
+        .features-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: var(--card-shadow);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+
+        .feature-card i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover i {
+            transform: scale(1.2);
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .feature-card p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            animation: slideIn 0.5s ease;
+        }
+
+        .expense-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .expense-category {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: white;
+            background: var(--primary-color);
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .total-expense {
+            text-align: center;
+            font-size: 2rem;
+            margin-top: 2rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;  /* Add space below the total */
+            
+        }
+
+        #expenseChart {
+            margin-top: 2rem;
+            animation: fadeIn 1s ease;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            color: white;
+            animation: slideInRight 0.5s ease;
+            z-index: 1000;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+    .container {
+        margin: 1rem;
+        padding: 1rem;
+    }
+
+    .features-container {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+
+    .btn {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .feature-card {
+        padding: 1rem;
+    }
+    }
+
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💰 Expense Tracker</h1>
+        <p>Manage your expenses with ease</p>
+    </div>
+
+    <div class="features-container" id="features">
+        <div class="feature-card" onclick="showSection('expense-tracker')">
+            <i class="fas fa-wallet"></i>
+            <h3>Track Expenses</h3>
+            <p>Record and manage your daily expenses</p>
+        </div>
+        <div class="feature-card" onclick="showSection('split-expense')">
+            <i class="fas fa-users"></i>
+            <h3>Split Expenses</h3>
+            <p>Split bills among friends easily</p>
+        </div>
+        <div class="feature-card" onclick="showSection('expense-report')">
+            <i class="fas fa-chart-pie"></i>
+            <h3>Analytics</h3>
+            <p>Visualize your spending patterns</p>
+        </div>
+    </div>
+
+    <div class="container hidden" id="expense-tracker">
+        <button class="btn" onclick="showSection('features')">
+            <i class="fas fa-arrow-left"></i> Back
+        </button>
+        <h2>Add New Expense</h2>
+        <div class="form-group">
+            <label>Description</label>
+            <input type="text" id="description" placeholder="What did you spend on?">
+        </div>
+        <div class="form-group">
+            <label>Amount (₹)</label>
+            <input type="number" id="amount" placeholder="How much did you spend?">
+        </div>
+        <div class="form-group">
+            <label>Category</label>
+            <select id="category">
+                <option value="Food">Food</option>
+                <option value="Transport">Transport</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Bills">Bills</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <button class="btn" onclick="addExpense()">
+            <i class="fas fa-plus"></i> Add Expense
+        </button>
+        <div id="expenses-list"></div>
+        <div class="total-expense" id="total">Total: ₹0</div>
+
+        <button class="btn" onclick="clearAllExpenses()">
+            <i class="fas fa-trash-alt"></i> Clear All
+        </button>
+        <br>
+    </div>
+
+    
+  
+    
+
+    <div class="container hidden" id="split-expense">
+        <button class="btn" onclick="showSection('features')">
+            <i class="fas fa-arrow-left"></i> Back
+        </button>
+        <h2>Split Expenses</h2>
+        <div class="form-group">
+            <label>Total Amount (₹)</label>
+            <input type="number" id="split-amount" placeholder="Enter total amount">
+        </div>
+        <div class="form-group">
+            <label>Number of People</label>
+            <input type="number" id="num-people" placeholder="How many people?">
+        </div>
+        <button class="btn" onclick="calculateSplit()">
+            <i class="fas fa-calculator"></i> Calculate Split
+        </button>
+        <div id="split-result" class="total-expense hidden"></div>
+    </div>
+
+    <div class="container hidden" id="expense-report">
+        <button class="btn" onclick="showSection('features')">
+            <i class="fas fa-arrow-left"></i> Back
+        </button>
+        <h2>Expense Analytics</h2>
+        <canvas id="expenseChart"></canvas>
+    </div>
+
+    <script>
+        let expenses = [];
+        let chart = null;
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.container, .features-container').forEach(container => {
+                container.classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+
+            if (sectionId === 'expense-report') {
+                updateChart();
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.style.backgroundColor = type === 'success' ? '#4CAF50' : '#f44336';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        function clearAllExpenses() {
+    expenses = [];
+    localStorage.removeItem('expenses');
+    updateExpensesList();
+    updateTotal();
+    updateChart();
+    showNotification('All expenses cleared');
+    }
+
+
+        function addExpense() {
+    const description = document.getElementById('description').value;
+    const amount = parseFloat(document.getElementById('amount').value);
+    const category = document.getElementById('category').value;
+
+    if (!description || isNaN(amount) || amount <= 0) {
+        showNotification('Please fill all fields correctly', 'error');
+        return;
+    }
+
+    const newExpense = { description, amount, category, date: new Date() };
+    expenses.push(newExpense);
+    
+    // Save to localStorage
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+
+    updateExpensesList();
+    updateTotal();
+    updateChart();
+
+    // Clear inputs
+    document.getElementById('description').value = '';
+    document.getElementById('amount').value = '';
+    
+    showNotification('Expense added successfully!');
+}
+
+
+        function updateExpensesList() {
+            const list = document.getElementById('expenses-list');
+            list.innerHTML = '';
+
+            expenses.forEach((expense, index) => {
+                const item = document.createElement('div');
+                item.className = 'expense-item';
+                item.innerHTML = `
+                    <div class="expense-info">
+                        <span class="expense-category">${expense.category}</span>
+                        <div>
+                            <strong>${expense.description}</strong>
+                            <div style="color: #666; font-size: 0.8rem;">
+                                ${expense.date.toLocaleDateString()}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <strong>₹${expense.amount}</strong>
+                        <button class="delete-btn" onclick="deleteExpense(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function deleteExpense(index) {
+            expenses.splice(index, 1);
+            updateExpensesList();
+            updateTotal();
+            updateChart();
+            showNotification('Expense deleted');
+        }
+
+        function updateTotal() {
+            const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            document.getElementById('total').textContent = `Total: ₹${total.toFixed(2)}`;
+        }
+
+        function calculateSplit() {
+    const amount = parseFloat(document.getElementById('split-amount').value);
+    const people = parseInt(document.getElementById('num-people').value);
+
+    if (isNaN(amount) || isNaN(people) || amount <= 0 || people <= 0) {
+        showNotification('Please enter valid numbers', 'error');
+        return;
+    }
+
+    if (people === 0) {
+        showNotification('Number of people cannot be zero', 'error');
+        return;
+    }
+
+    const perPerson = amount / people;
+    const result = document.getElementById('split-result');
+    result.textContent = `Each person pays: ₹${perPerson.toFixed(2)}`;
+    result.classList.remove('hidden');
+}
+
+        function updateChart() {
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+            
+            // Group expenses by category
+            const categoryTotals = expenses.reduce((acc, expense) => {
+                acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
+                return acc;
+            }, {});
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categoryTotals),
+                    datasets: [{
+                        data: Object.values(categoryTotals),
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4CAF50', '#9966FF', '#FF9F40'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Expense Distribution by Category'
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+    
+</body>
+</html>
